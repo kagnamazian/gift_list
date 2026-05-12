@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Liste de cadeaux — Rivka 🎁</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --rose: #e8a0b0;
+    --rose-light: #f9edf0;
+    --rose-mid: #d4788e;
+    --rose-dark: #8c3a52;
+    --ink: #131926;
+    --ink-soft: #4a556e;
+    --surface: #fbfcff;
+    --surface2: #f0f4fb;
+    --border: rgba(45,78,138,0.13);
+    --gold: #c9a84c;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--rose-light);
+    border-bottom: 1px solid var(--border);
+    padding: 2.5rem 1.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(102,148,212,0.18) 0%, transparent 70%);
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -30px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(160,189,232,0.2) 0%, transparent 70%);
+  }
+  .header-eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rose-mid);
+    margin-bottom: 8px;
+  }
+  header h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 8vw, 3rem);
+    font-weight: 400;
+    color: var(--rose-dark);
+    line-height: 1.15;
+  }
+  header h1 em {
+    font-style: italic;
+    color: var(--rose-mid);
+  }
+  .header-sub {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+    font-weight: 300;
+  }
+
+  .nickname-bar {
+    background: white;
+    border-bottom: 1px solid var(--border);
+    padding: 12px 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .nickname-bar span { font-weight: 500; color: var(--rose-dark); }
+  #nickname-display { cursor: pointer; text-decoration: underline dotted; }
+  #nickname-input-wrap { display: none; flex: 1; gap: 8px; }
+  #nickname-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    background: var(--surface);
+  }
+  #nickname-input:focus { border-color: var(--rose-mid); }
+  .btn-small {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--rose-mid);
+    background: none;
+    font-size: 12px;
+    font-family: 'DM Sans', sans-serif;
+    color: var(--rose-dark);
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-small:hover { background: var(--rose-light); }
+  .btn-small.confirm { background: var(--rose-mid); color: white; border-color: var(--rose-mid); }
+  .btn-small.confirm:hover { background: var(--rose-dark); }
+
+  main { max-width: 540px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
+
+  .gift-list { display: flex; flex-direction: column; gap: 16px; }
+
+  .gift-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .gift-card:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(45,78,138,0.08); }
+  .gift-card.claimed { border-color: rgba(201,168,76,0.4); }
+
+  .gift-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    background: var(--surface2);
+  }
+  .gift-img-placeholder {
+    width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--rose-light);
+    font-size: 3rem;
+  }
+
+  .gift-body { padding: 1rem 1.25rem 1.25rem; }
+  .gift-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+  .gift-desc {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    font-weight: 300;
+    margin-bottom: 14px;
+  }
+  .gift-price {
+    font-size: 13px;
+    color: var(--rose-dark);
+    font-weight: 500;
+    margin-bottom: 14px;
+  }
+
+  .gift-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+  .btn-buy {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: none;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-buy:hover { background: var(--surface2); }
+  .btn-buy.disabled {
+    opacity: 0.35;
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .btn-claim {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--rose-mid);
+    background: none;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    color: var(--rose-dark);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-claim:hover { background: var(--rose-light); }
+
+  .claimed-info {
+    margin-left: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    background: #fdf8ec;
+    border: 1px solid rgba(201,168,76,0.4);
+    font-size: 12px;
+    font-weight: 500;
+    color: #7a5c1a;
+  }
+
+  .btn-claim.is-mine {
+    background: #f0f9f0;
+    border-color: #7bb87b;
+    color: #2d6b2d;
+  }
+  .btn-claim.is-mine:hover { background: #e2f3e2; }
+
+  .admin-trigger {
+    position: fixed;
+    bottom: 1rem; right: 1rem;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s;
+    z-index: 100;
+  }
+  .admin-trigger:hover { background: var(--rose-light); }
+
+  .admin-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(19,25,38,0.55);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .admin-modal.open { display: flex; }
+  .admin-sheet {
+    background: white;
+    border-radius: 20px 20px 0 0;
+    width: 100%;
+    max-width: 540px;
+    padding: 1.5rem;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  .admin-sheet h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    margin-bottom: 4px;
+    color: var(--rose-dark);
+  }
+  .admin-sheet p { font-size: 13px; color: var(--ink-soft); margin-bottom: 1rem; }
+  #admin-pw {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    margin-bottom: 10px;
+    outline: none;
+  }
+  #admin-pw:focus { border-color: var(--rose-mid); }
+  .admin-error { color: #c0392b; font-size: 12px; margin-bottom: 8px; display: none; }
+
+  .claim-list { margin-top: 1rem; }
+  .claim-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .claim-row:last-child { border-bottom: none; }
+  .claim-row strong { color: var(--ink); }
+  .claim-row span { color: var(--ink-soft); font-size: 12px; }
+  .btn-remove-claim {
+    padding: 5px 10px;
+    border-radius: 6px;
+    border: 1px solid #c0392b;
+    background: none;
+    color: #c0392b;
+    font-size: 11px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-remove-claim:hover { background: #fff0ee; }
+
+  footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 11px;
+    color: var(--rose-mid);
+    letter-spacing: 0.08em;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Skeletons */
+  .gift-img-skeleton {
+    width: 100%; height: 200px;
+    background: linear-gradient(90deg, var(--surface2) 25%, #e8edf5 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  .skeleton-line {
+    height: 12px; border-radius: 6px; margin-bottom: 10px;
+    background: linear-gradient(90deg, var(--surface2) 25%, #e8edf5 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  .skeleton-line.w70 { width: 70%; }
+  .skeleton-line.w50 { width: 50%; }
+  .skeleton-line.w90 { width: 90%; height: 10px; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+
+  /* Skeletons */
+  .gift-img-skeleton {
+    width: 100%; height: 200px;
+    background: linear-gradient(90deg, var(--surface2) 25%, #f5eef0 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  .skeleton-line {
+    height: 12px; border-radius: 6px; margin: 10px 16px;
+    background: linear-gradient(90deg, var(--surface2) 25%, #f5eef0 50%, var(--surface2) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+  }
+  .skeleton-line.w70 { width: 60%; }
+  .skeleton-line.w50 { width: 45%; }
+  .skeleton-line.w90 { width: 80%; height: 10px; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-eyebrow">Liste de cadeaux</div>
+  <h1>Rivka <em>✨</em></h1>
+  <p class="header-sub">Voici une petite liste d’idées cadeaux 🎁
+Ce sont juste des suggestions, histoire d’éviter les doublons (et qu’on ouvre 3 fois le même puzzle 😄).
+Vous pouvez réserver un cadeau si vous le souhaitez.
+J’ai ajouté des liens pour préserver notre santé mentale et éviter les recherches interminables 😂, mais si vous trouvez la même chose en magasin ou sur un autre site, aucun souci bien sûr !
+Merci à vous
+  </p>
+</header>
+
+<div class="nickname-bar">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--rose-mid)"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+  Vous êtes :
+  <span id="nickname-display">Anonyme</span>
+  <div id="nickname-input-wrap">
+    <input id="nickname-input" type="text" maxlength="30" placeholder="Votre prénom…">
+    <button class="btn-small confirm" onclick="saveNickname()">OK</button>
+    <button class="btn-small" onclick="cancelNickname()">✕</button>
+  </div>
+</div>
+
+<main>
+  <div class="gift-list" id="gift-list">
+    <p style="text-align:center;color:var(--ink-soft);font-size:13px;padding:2rem 0">Chargement…</p>
+  </div>
+</main>
+
+<footer>Fait avec amour par Maman Dabroek</footer>
+
+<button class="admin-trigger" onclick="openAdmin()" title="Admin">⚙️</button>
+
+<div class="admin-modal" id="admin-modal" onclick="if(event.target===this)closeAdmin()">
+  <div class="admin-sheet">
+    <h2>Administration</h2>
+    <p>Entrez le mot de passe admin pour gérer les réservations.</p>
+    <div id="admin-login-section">
+      <input id="admin-pw" type="password" placeholder="Mot de passe…" onkeydown="if(event.key==='Enter')checkAdmin()">
+      <div class="admin-error" id="admin-error">Mot de passe incorrect.</div>
+      <button class="btn-small confirm" style="width:100%;padding:10px" onclick="checkAdmin()">Accéder</button>
+    </div>
+    <div id="admin-panel" style="display:none">
+      <p style="color:var(--rose-dark);font-weight:500">✓ Connecté — réservations actuelles :</p>
+      <div class="claim-list" id="admin-claim-list"></div>
+      <button class="btn-small" style="margin-top:1rem;width:100%" onclick="closeAdmin()">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG — EDIT THIS ────────────────────────────────────────────────────
+const ADMIN_PASSWORD = "rivka2025";  // ← change this!
+
+// JSONbin.io setup (free):
+// 1. Create a free account at https://jsonbin.io
+// 2. Go to API Keys → Master Key → copy it
+// 3. Click "Create Bin", paste {} as content, name it "rivka-claims", make it PRIVATE
+// 4. Copy the Bin ID from the URL bar (looks like 64a3f2abc…)
+// 5. Paste both below:
+const JSONBIN_BIN_ID  = "6a034dbbadc21f119a8d03e9";
+const JSONBIN_API_KEY = "$2a$10$oEY0O6FlMG9d3KTOOpP6yOtQiz3nmTDMugKL9u1ncQtmhwmtNzUoK";
+// ──────────────────────────────────────────────────────────────────────────
+
+const GIFTS = [
+  { id: "r1", url: "https://amzn.eu/d/0206t80z",  label: "Chefclub Kids - Couteau de cuisine pour aider maman - €19.99" },
+  { id: "r2", url: "https://amzn.eu/d/0gXX20gZ",  label: "Chefclub Kids - Économe - €11.99" },
+  { id: "r3", url: "https://www.amazon.fr/-/en/histoires-Ptit-Sami-Maternelle-3-5/dp/2017080829/ref=sr_1_2?crid=30OGNBA7FTCIK&dib=eyJ2IjoiMSJ9.xFD5YxhiCoJrXJMAimNel610EvX0nBGdu3kQobKzRGxZaus_809IrjzUv7UfHpvUi57L-_PrU7dS8oEYZzyfBZzruue_4LU1SMMKhaalcNcK4RUQKh7c552KYYW0pq3LRT-TS8lddtzPuqJCOfeJ57nb6qcnBDIABpgQhiopk9yj8xIK4C75CMSDvPYq5w28bvGkiyP1lSRlobVE-bIDr3AOafZqmadl7UMmpx9gFA0zyyr2NV5JWCIXK8mPNkY6-ay4CY_KiY0orFgpb844JJaK98VxCZjqHdIchYByFtw.BZ5xmMSD11-Ddj_OjT6EFFhUad149Pp6leaYgpqY9Y0&dib_tag=se&keywords=sami+et+julie+maternelle&qid=1778602363&sprefix=sami+et+julie+matern%2Caps%2C312&sr=8-2", label: "Les histoires de P'tit Sami Maternelle (3-5 ans) : Sami et Julie se déguisent - €3.90" },
+  { id: "r4", url: "https://www.amazon.fr/-/en/histoires-Ptit-Sami-Maternelle-3-5/dp/2017082236/ref=sr_1_7?crid=30OGNBA7FTCIK&dib=eyJ2IjoiMSJ9.xFD5YxhiCoJrXJMAimNel610EvX0nBGdu3kQobKzRGxZaus_809IrjzUv7UfHpvUi57L-_PrU7dS8oEYZzyfBZzruue_4LU1SMMKhaalcNcK4RUQKh7c552KYYW0pq3LRT-TS8lddtzPuqJCOfeJ57nb6qcnBDIABpgQhiopk9yj8xIK4C75CMSDvPYq5w28bvGkiyP1lSRlobVE-bIDr3AOafZqmadl7UMmpx9gFA0zyyr2NV5JWCIXK8mPNkY6-ay4CY_KiY0orFgpb844JJaK98VxCZjqHdIchYByFtw.BZ5xmMSD11-Ddj_OjT6EFFhUad149Pp6leaYgpqY9Y0&dib_tag=se&keywords=sami+et+julie+maternelle&qid=1778602363&sprefix=sami+et+julie+matern%2Caps%2C312&sr=8-7", label: "Les histoires de P'tit Sami Maternelle (3-5 ans) : Sami et Julie à la piscine - €3.90" },
+  { id: "r5", url: "https://www.amazon.fr/-/en/histoires-Ptit-Sami-Maternelle-3-5/dp/201715816X/ref=sr_1_11?crid=30OGNBA7FTCIK&dib=eyJ2IjoiMSJ9.xFD5YxhiCoJrXJMAimNel610EvX0nBGdu3kQobKzRGxZaus_809IrjzUv7UfHpvUi57L-_PrU7dS8oEYZzyfBZzruue_4LU1SMMKhaalcNcK4RUQKh7c552KYYW0pq3LRT-TS8lddtzPuqJCOfeJ57nb6qcnBDIABpgQhiopk9yj8xIK4C75CMSDvPYq5w28bvGkiyP1lSRlobVE-bIDr3AOafZqmadl7UMmpx9gFA0zyyr2NV5JWCIXK8mPNkY6-ay4CY_KiY0orFgpb844JJaK98VxCZjqHdIchYByFtw.BZ5xmMSD11-Ddj_OjT6EFFhUad149Pp6leaYgpqY9Y0&dib_tag=se&keywords=sami+et+julie+maternelle&qid=1778602363&sprefix=sami+et+julie+matern%2Caps%2C312&sr=8-11", label: "Les histoires de P'tit Sami Maternelle (3-5 ans) : Sami et Julie ne veulent pas dormir - €3.90" },
+  { id: "r6", url: "https://amzn.eu/d/0ikSIEsf",  label: "Janod Magnéti'Book Girl - €18.90" },
+  { id: "r7", url: "https://amzn.eu/d/02YN4btH",  label: "Nathan J'achète -  €16.99" },
+  { id: "r8", url: "https://amzn.eu/d/01wRzhQM",  label: "Habit pour bébé pour la piscine - €12.99" },
+  { id: "r9", url: "https://amzn.eu/d/0j4jMTmk",  label: "Playmobil Licorne - €14.99" },
+  { id: "r10", url: "https://www.carrefour.fr/p/jeu-de-societe-goula-happy-chicken-8410446531709", label: "Goula Happy Chicken - €18" }
+];
+
+let claims = {};
+let myId = getMyId();
+let myNickname = localStorage.getItem("giftlist_nickname") || "";
+let adminUnlocked = false;
+
+function getMyId() {
+  let id = localStorage.getItem("giftlist_visitor_id_rivka");
+  if (!id) { id = "v_" + Math.random().toString(36).slice(2, 10); localStorage.setItem("giftlist_visitor_id_rivka", id); }
+  return id;
+}
+
+function updateNicknameBar() {
+  document.getElementById("nickname-display").textContent = myNickname || "Anonyme";
+}
+document.getElementById("nickname-display").addEventListener("click", () => {
+  document.getElementById("nickname-input-wrap").style.display = "flex";
+  document.getElementById("nickname-input").value = myNickname;
+  document.getElementById("nickname-input").focus();
+  document.getElementById("nickname-display").style.display = "none";
+});
+function saveNickname() {
+  myNickname = document.getElementById("nickname-input").value.trim() || "";
+  localStorage.setItem("giftlist_nickname", myNickname);
+  document.getElementById("nickname-input-wrap").style.display = "none";
+  document.getElementById("nickname-display").style.display = "";
+  updateNicknameBar();
+  render();
+}
+function cancelNickname() {
+  document.getElementById("nickname-input-wrap").style.display = "none";
+  document.getElementById("nickname-display").style.display = "";
+}
+
+async function loadClaims() {
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+      headers: { "X-Master-Key": JSONBIN_API_KEY }
+    });
+    const data = await res.json();
+    claims = data.record || {};
+  } catch (e) { claims = {}; }
+}
+
+async function saveClaims() {
+  try {
+    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Master-Key": JSONBIN_API_KEY
+      },
+      body: JSON.stringify(claims)
+    });
+  } catch (e) {}
+}
+
+// ─── Microlink preview cache ────────────────────────────────────────────────
+const previewCache = {};
+
+async function fetchPreview(url) {
+  if (previewCache[url]) return previewCache[url];
+  try {
+    const api = `https://api.microlink.io/?url=${encodeURIComponent(url)}&palette=false`;
+    const res = await fetch(api);
+    const data = await res.json();
+    const d = data.data || {};
+    previewCache[url] = {
+      title: d.title || url,
+      desc:  d.description || "",
+      img:   d.image?.url || d.logo?.url || null,
+      price: d.price || null
+    };
+  } catch(e) {
+    previewCache[url] = { title: url, desc: "", img: null, price: null };
+  }
+  return previewCache[url];
+}
+
+async function render() {
+  const list = document.getElementById("gift-list");
+  list.innerHTML = "";
+  GIFTS.forEach(g => {
+    const card = document.createElement("div");
+    card.className = "gift-card skeleton";
+    card.id = "card-" + g.id;
+    card.innerHTML = `
+      <div class="gift-img-skeleton"></div>
+      <div class="gift-body">
+        <div class="skeleton-line w70"></div>
+        <div class="skeleton-line w50"></div>
+        <div class="skeleton-line w90"></div>
+      </div>`;
+    list.appendChild(card);
+  });
+  await Promise.all(GIFTS.map(async g => {
+    const p = await fetchPreview(g.url);
+    renderCard(g, p);
+  }));
+}
+
+function renderCard(g, p) {
+  const c = claims[g.id];
+  const isMe = c && c.visitorId === myId;
+  const isClaimed = !!c;
+  const card = document.getElementById("card-" + g.id);
+  if (!card) return;
+  card.className = "gift-card" + (isClaimed ? " claimed" : "");
+
+  const imgHtml = p.img
+    ? `<img class="gift-img" src="${p.img}" alt="${g.label}" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+    : "";
+  const placeholderHtml = `<div class="gift-img-placeholder" style="${p.img ? "display:none" : ""}">🎁</div>`;
+  const price = p.price ? `<div class="gift-price">${p.price}</div>` : "";
+
+  let buyBtn = isClaimed && !isMe
+    ? `<a class="btn-buy disabled" aria-disabled="true" tabindex="-1">
+         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+         Acheter
+       </a>`
+    : `<a class="btn-buy" href="${g.url}" target="_blank" rel="noopener">
+         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+         Acheter
+       </a>`;
+
+  let claimBtn = "";
+  if (isMe) {
+    claimBtn = `<button class="btn-claim is-mine" onclick="unclaim('${g.id}')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      Je le prends — annuler
+    </button>`;
+  } else if (isClaimed) {
+    const who = c.nickname ? c.nickname : "Quelqu'un";
+    claimBtn = `<div class="claimed-info">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      Réservé par ${who}
+    </div>`;
+  } else {
+    claimBtn = `<button class="btn-claim" onclick="claim('${g.id}')">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      Je le prends !
+    </button>`;
+  }
+
+  card.innerHTML = `
+    ${imgHtml}${placeholderHtml}
+    <div class="gift-body">
+      <div class="gift-name">${g.label || p.title}</div>
+      ${p.desc ? `<div class="gift-desc">${p.desc}</div>` : ""}
+      ${price}
+      <div class="gift-actions">${buyBtn}${claimBtn}</div>
+    </div>`;
+}
+
+async function claim(id) {
+  claims[id] = { visitorId: myId, nickname: myNickname || null, date: new Date().toLocaleDateString("fr-FR") };
+  await saveClaims();
+  const g = GIFTS.find(x => x.id === id);
+  if (g) renderCard(g, previewCache[g.url] || { title: g.label, desc: "", img: null, price: null });
+}
+async function unclaim(id) {
+  delete claims[id];
+  await saveClaims();
+  const g = GIFTS.find(x => x.id === id);
+  if (g) renderCard(g, previewCache[g.url] || { title: g.label, desc: "", img: null, price: null });
+}
+
+function openAdmin() {
+  document.getElementById("admin-modal").classList.add("open");
+  if (!adminUnlocked) {
+    document.getElementById("admin-pw").value = "";
+    document.getElementById("admin-error").style.display = "none";
+  }
+}
+function closeAdmin() {
+  document.getElementById("admin-modal").classList.remove("open");
+}
+function checkAdmin() {
+  const pw = document.getElementById("admin-pw").value;
+  if (pw === ADMIN_PASSWORD) {
+    adminUnlocked = true;
+    document.getElementById("admin-login-section").style.display = "none";
+    document.getElementById("admin-panel").style.display = "";
+    renderAdminPanel();
+  } else {
+    document.getElementById("admin-error").style.display = "block";
+  }
+}
+function renderAdminPanel() {
+  const list = document.getElementById("admin-claim-list");
+  const active = GIFTS.filter(g => claims[g.id]);
+  if (!active.length) {
+    list.innerHTML = `<p style="font-size:13px;color:var(--ink-soft);padding:1rem 0">Aucune réservation pour l'instant.</p>`;
+    return;
+  }
+  list.innerHTML = active.map(g => {
+    const c = claims[g.id];
+    return `<div class="claim-row">
+      <div>
+        <strong>${g.name}</strong><br>
+        <span>${c.nickname || "Anonyme"} — ${c.date || ""}</span>
+      </div>
+      <button class="btn-remove-claim" onclick="adminUnclaim('${g.id}')">Libérer</button>
+    </div>`;
+  }).join("");
+}
+async function adminUnclaim(id) {
+  delete claims[id];
+  await saveClaims();
+  render();
+  renderAdminPanel();
+}
+
+updateNicknameBar();
+loadClaims().then(render);
+</script>
+</body>
+</html>
