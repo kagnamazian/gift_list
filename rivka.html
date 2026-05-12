@@ -78,30 +78,8 @@
     font-weight: 300;
   }
 
-  .nickname-bar {
-    background: white;
-    border-bottom: 1px solid var(--border);
-    padding: 12px 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    color: var(--ink-soft);
-  }
-  .nickname-bar span { font-weight: 500; color: var(--rose-dark); }
-  #nickname-display { cursor: pointer; text-decoration: underline dotted; }
-  #nickname-input-wrap { display: none; flex: 1; gap: 8px; }
-  #nickname-input {
-    flex: 1;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-    background: var(--surface);
-  }
-  #nickname-input:focus { border-color: var(--rose-mid); }
+
+
   .btn-small {
     padding: 6px 12px;
     border-radius: 6px;
@@ -322,6 +300,46 @@
     letter-spacing: 0.08em;
     border-top: 1px solid var(--border);
   }
+  .name-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20,22,32,0.55);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+.name-modal.open { display: flex; }
+.name-sheet {
+  background: white;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 540px;
+  padding: 1.5rem 1.5rem 2rem;
+}
+.name-sheet h2 {
+  font-family: 'Playfair Display', serif; /* or 'Cormorant Garamond' for rivka */
+  font-size: 20px;
+  margin-bottom: 6px;
+  color: var(--blue-dark); /* or --rose-dark for rivka */
+}
+.name-sheet p { font-size: 13px; color: var(--ink-soft); margin-bottom: 1rem; }
+#name-modal-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 12px;
+  outline: none;
+}
+#name-modal-input:focus { border-color: var(--blue-mid); } /* or --rose-mid */
+.name-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
 
   /* Skeletons */
   .gift-img-skeleton {
@@ -374,17 +392,6 @@ J’ai ajouté des liens pour préserver notre santé mentale et éviter les rec
 Merci à vous
   </p>
 </header>
-
-<div class="nickname-bar">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--rose-mid)"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-  Vous êtes :
-  <span id="nickname-display">Anonyme</span>
-  <div id="nickname-input-wrap">
-    <input id="nickname-input" type="text" maxlength="30" placeholder="Votre prénom…">
-    <button class="btn-small confirm" onclick="saveNickname()">OK</button>
-    <button class="btn-small" onclick="cancelNickname()">✕</button>
-  </div>
-</div>
 
 <main>
   <div class="gift-list" id="gift-list">
@@ -593,11 +600,32 @@ function renderCard(g, p) {
     </div>`;
 }
 
-async function claim(id) {
-  claims[id] = { visitorId: myId, nickname: myNickname || null, date: new Date().toLocaleDateString("fr-FR") };
+let pendingClaimId = null;
+
+function claim(id) {
+  pendingClaimId = id;
+  const saved = localStorage.getItem("giftlist_nickname") || "";
+  document.getElementById("name-modal-input").value = saved;
+  document.getElementById("name-modal").classList.add("open");
+  setTimeout(() => document.getElementById("name-modal-input").focus(), 50);
+}
+async function confirmClaim() {
+  const name = document.getElementById("name-modal-input").value.trim();
+  if (!name) { document.getElementById("name-modal-input").focus(); return; }
+  localStorage.setItem("giftlist_nickname", name);
+  myNickname = name;
+  document.getElementById("name-modal").classList.remove("open");
+  const id = pendingClaimId;
+  pendingClaimId = null;
+  claims[id] = { visitorId: myId, nickname: name, date: new Date().toLocaleDateString("fr-FR") };
   await saveClaims();
   const g = GIFTS.find(x => x.id === id);
   if (g) renderCard(g, previewCache[g.url] || { title: g.label, desc: "", img: null, price: null });
+}
+
+function cancelClaim() {
+  pendingClaimId = null;
+  document.getElementById("name-modal").classList.remove("open");
 }
 async function unclaim(id) {
   delete claims[id];
