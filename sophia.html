@@ -78,32 +78,6 @@
     margin-top: 10px;
     font-weight: 300;
   }
-
-  /* NICKNAME BAR */
-  .nickname-bar {
-    background: white;
-    border-bottom: 1px solid var(--border);
-    padding: 12px 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 13px;
-    color: var(--ink-soft);
-  }
-  .nickname-bar span { font-weight: 500; color: var(--blue-dark); }
-  #nickname-display { cursor: pointer; text-decoration: underline dotted; }
-  #nickname-input-wrap { display: none; flex: 1; gap: 8px; }
-  #nickname-input {
-    flex: 1;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 6px 10px;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-    background: var(--surface);
-  }
-  #nickname-input:focus { border-color: var(--blue-mid); }
   .btn-small {
     padding: 6px 12px;
     border-radius: 6px;
@@ -121,7 +95,47 @@
 
   /* MAIN */
   main { max-width: 540px; margin: 0 auto; padding: 1.5rem 1rem 4rem; }
-
+.name-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20,22,32,0.55);
+  z-index: 200;
+  align-items: flex-end;
+  justify-content: center;
+}
+.name-modal.open { display: flex; }
+.name-sheet {
+  background: white;
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  max-width: 540px;
+  padding: 1.5rem 1.5rem 2rem;
+}
+.name-sheet h2 {
+  font-family: 'Playfair Display', serif; /* or 'Cormorant Garamond' for rivka */
+  font-size: 20px;
+  margin-bottom: 6px;
+  color: var(--blue-dark); /* or --rose-dark for rivka */
+}
+.name-sheet p { font-size: 13px; color: var(--ink-soft); margin-bottom: 1rem; }
+#name-modal-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  margin-bottom: 12px;
+  outline: none;
+}
+#name-modal-input:focus { border-color: var(--blue-mid); } /* or --rose-mid */
+.name-modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+  
   /* GIFT CARDS */
   .gift-list { display: flex; flex-direction: column; gap: 16px; }
 
@@ -380,17 +394,6 @@ J’ai ajouté des liens pour préserver notre santé mentale et éviter les rec
 Merci à vous</p>
 </header>
 
-<div class="nickname-bar">
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--blue-mid)"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-  Vous êtes :
-  <span id="nickname-display">Anonyme</span>
-  <div id="nickname-input-wrap">
-    <input id="nickname-input" type="text" maxlength="30" placeholder="Votre prénom…">
-    <button class="btn-small confirm" onclick="saveNickname()">OK</button>
-    <button class="btn-small" onclick="cancelNickname()">✕</button>
-  </div>
-</div>
-
 <main>
   <div class="gift-list" id="gift-list">
     <p style="text-align:center;color:var(--ink-soft);font-size:13px;padding:2rem 0">Chargement…</p>
@@ -398,7 +401,20 @@ Merci à vous</p>
 </main>
 
 <footer>Fait avec amour par Maman Dabroek 🎀</footer>
-
+  
+<!-- Name modal -->
+<div class="name-modal" id="name-modal">
+  <div class="name-sheet">
+    <h2>Qui réserve ce cadeau ?</h2>
+    <p>Entrez votre prénom pour que la famille sache que ce cadeau est pris.</p>
+    <input id="name-modal-input" type="text" maxlength="30" placeholder="Votre prénom…"
+           onkeydown="if(event.key==='Enter')confirmClaim()">
+    <div class="name-modal-actions">
+      <button class="btn-small" onclick="cancelClaim()">Annuler</button>
+      <button class="btn-small confirm" onclick="confirmClaim()">Réserver !</button>
+    </div>
+  </div>
+</div>
 <!-- Admin trigger -->
 <button class="admin-trigger" onclick="openAdmin()" title="Admin">⚙️</button>
 
@@ -455,29 +471,6 @@ function getMyId() {
   let id = localStorage.getItem("giftlist_visitor_id_sophia");
   if (!id) { id = "v_" + Math.random().toString(36).slice(2, 10); localStorage.setItem("giftlist_visitor_id_sophia", id); }
   return id;
-}
-
-// --- Nickname ---
-function updateNicknameBar() {
-  document.getElementById("nickname-display").textContent = myNickname || "Anonyme";
-}
-document.getElementById("nickname-display").addEventListener("click", () => {
-  document.getElementById("nickname-input-wrap").style.display = "flex";
-  document.getElementById("nickname-input").value = myNickname;
-  document.getElementById("nickname-input").focus();
-  document.getElementById("nickname-display").style.display = "none";
-});
-function saveNickname() {
-  myNickname = document.getElementById("nickname-input").value.trim() || "";
-  localStorage.setItem("giftlist_nickname", myNickname);
-  document.getElementById("nickname-input-wrap").style.display = "none";
-  document.getElementById("nickname-display").style.display = "";
-  updateNicknameBar();
-  render();
-}
-function cancelNickname() {
-  document.getElementById("nickname-input-wrap").style.display = "none";
-  document.getElementById("nickname-display").style.display = "";
 }
 
 // --- Storage ---
@@ -613,12 +606,35 @@ function renderCard(g, p) {
 
 
 // --- Claim / Unclaim ---
-async function claim(id) {
-  claims[id] = { visitorId: myId, nickname: myNickname || null, date: new Date().toLocaleDateString("fr-FR") };
+let pendingClaimId = null;
+
+function claim(id) {
+  pendingClaimId = id;
+  const saved = localStorage.getItem("giftlist_nickname") || "";
+  document.getElementById("name-modal-input").value = saved;
+  document.getElementById("name-modal").classList.add("open");
+  setTimeout(() => document.getElementById("name-modal-input").focus(), 50);
+}
+
+async function confirmClaim() {
+  const name = document.getElementById("name-modal-input").value.trim();
+  if (!name) { document.getElementById("name-modal-input").focus(); return; }
+  localStorage.setItem("giftlist_nickname", name);
+  myNickname = name;
+  document.getElementById("name-modal").classList.remove("open");
+  const id = pendingClaimId;
+  pendingClaimId = null;
+  claims[id] = { visitorId: myId, nickname: name, date: new Date().toLocaleDateString("fr-FR") };
   await saveClaims();
   const g = GIFTS.find(x => x.id === id);
   if (g) renderCard(g, previewCache[g.url] || { title: g.label, desc: "", img: null, price: null });
 }
+  
+function cancelClaim() {
+  pendingClaimId = null;
+  document.getElementById("name-modal").classList.remove("open");
+}
+  
 async function unclaim(id) {
   delete claims[id];
   await saveClaims();
@@ -674,7 +690,6 @@ async function adminUnclaim(id) {
 }
 
 // --- Init ---
-updateNicknameBar();
 loadClaims().then(render);
 </script>
 </body>
