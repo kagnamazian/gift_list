@@ -400,7 +400,19 @@ Merci à vous
 </main>
 
 <footer>Fait avec amour par Maman Dabroek</footer>
-
+<!-- Name modal -->
+<div class="name-modal" id="name-modal">
+  <div class="name-sheet">
+    <h2>Qui réserve ce cadeau ?</h2>
+    <p>Entrez votre prénom pour que la famille sache que ce cadeau est pris.</p>
+    <input id="name-modal-input" type="text" maxlength="30" placeholder="Votre prénom…"
+           onkeydown="if(event.key==='Enter')confirmClaim()">
+    <div class="name-modal-actions">
+      <button class="btn-small" onclick="cancelClaim()">Annuler</button>
+      <button class="btn-small confirm" onclick="confirmClaim()">Réserver !</button>
+    </div>
+  </div>
+</div>
 <button class="admin-trigger" onclick="openAdmin()" title="Admin">⚙️</button>
 
 <div class="admin-modal" id="admin-modal" onclick="if(event.target===this)closeAdmin()">
@@ -458,27 +470,6 @@ function getMyId() {
   return id;
 }
 
-function updateNicknameBar() {
-  document.getElementById("nickname-display").textContent = myNickname || "Anonyme";
-}
-document.getElementById("nickname-display").addEventListener("click", () => {
-  document.getElementById("nickname-input-wrap").style.display = "flex";
-  document.getElementById("nickname-input").value = myNickname;
-  document.getElementById("nickname-input").focus();
-  document.getElementById("nickname-display").style.display = "none";
-});
-function saveNickname() {
-  myNickname = document.getElementById("nickname-input").value.trim() || "";
-  localStorage.setItem("giftlist_nickname", myNickname);
-  document.getElementById("nickname-input-wrap").style.display = "none";
-  document.getElementById("nickname-display").style.display = "";
-  updateNicknameBar();
-  render();
-}
-function cancelNickname() {
-  document.getElementById("nickname-input-wrap").style.display = "none";
-  document.getElementById("nickname-display").style.display = "";
-}
 
 async function loadClaims() {
   try {
@@ -680,7 +671,6 @@ async function adminUnclaim(id) {
   renderAdminPanel();
 }
 
-updateNicknameBar();
 loadClaims().then(render);
 </script>
 </body>
